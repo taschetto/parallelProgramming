@@ -26,3 +26,10 @@
 *.exe
 *.out
 *.app
+
+ladhome/.bash_history
+ladhome/.bash_logout
+ladhome/.bashrc
+ladhome/.cache
+ladhome/.profile
+ladhome/.ssh
