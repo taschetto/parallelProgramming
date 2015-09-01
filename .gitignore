@@ -26,3 +26,14 @@
 *.exe
 *.out
 *.app
+
+ladhome/.bash_history
+ladhome/.bash_logout
+ladhome/.bashrc
+ladhome/.cache/motd.legal-displayed
+ladhome/.profile
+ladhome/.ssh/authorized_keys
+ladhome/.ssh/id_rsa
+ladhome/.ssh/id_rsa.pub
+ladhome/.viminfo
+
