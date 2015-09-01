@@ -30,6 +30,16 @@
 ladhome/.bash_history
 ladhome/.bash_logout
 ladhome/.bashrc
+<<<<<<< HEAD
+ladhome/.cache/motd.legal-displayed
+ladhome/.profile
+ladhome/.ssh/authorized_keys
+ladhome/.ssh/id_rsa
+ladhome/.ssh/id_rsa.pub
+ladhome/.viminfo
+
+=======
 ladhome/.cache
 ladhome/.profile
 ladhome/.ssh
+>>>>>>> 392acc980800ebaed18d78cb0e5417cb9ff24596
