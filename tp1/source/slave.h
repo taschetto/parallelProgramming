@@ -10,5 +10,5 @@ public:
   void mainLoop();
 
 private:
-  int job_size;
+  int job_size; // tamanho de cada job
 };
