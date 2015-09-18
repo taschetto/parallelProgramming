@@ -20,7 +20,7 @@ main(int argc, char** argv)
     //master.printJobs();
     master.mainLoop();
     //printf("After:\n");
-    master.printJobs();
+    //master.printJobs();
   }
   else
   {
