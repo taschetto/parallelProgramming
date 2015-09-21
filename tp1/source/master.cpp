@@ -1,11 +1,11 @@
 #include "master.h"
 #include "tags.h"
-#include "mpi.h"
 #include <stdio.h>
 #include <cstring>
 
-Master::Master(int num_slaves, int num_jobs, int job_size)
-  : num_slaves(num_slaves),
+Master::Master(int rank, int num_slaves, int num_jobs, int job_size)
+  : rank(rank),
+    num_slaves(num_slaves),
     num_jobs(num_jobs),
     job_size(job_size),
     next_job(0),
@@ -55,38 +55,58 @@ void Master::mainLoop()
   // aloca memória para um buffer do tamanho de um job
   int* buffer = new int[job_size]();
 
+  for (int i = 1; i <= this->num_slaves; i++) // inicia enviando uma rajada de jobs
+  {
+    if (hasWaitingJobs())
+      sendJobToSlave(i);
+  }
+
   while(hasWaitingJobs() or hasWorkingJobs() or hasSlavesAlive())
   {
-    // Recebe uma mensagem qualquer
-    MPI_Recv(buffer, job_size, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    receive(buffer, &status);
 
-    switch(status.MPI_TAG)
+    if (status.MPI_TAG == TAG_JOB_DONE) // um escravo terminou de processar um job e enviou o resultado
     {
-      case TAG_IM_FREE: // um escravo sinalizou que está disponível
-      {
-        if (hasWaitingJobs())
-        {
-          // envia um novo job para este escravo e associa o escravo ao job enviado
-          MPI_Send(this->jobs[next_job], job_size, MPI_INT, status.MPI_SOURCE, TAG_NEW_JOB, MPI_COMM_WORLD);
-          slaves[status.MPI_SOURCE] = next_job++;
-        }
-        else
-        {
-          // embora o escravo esteja disponǘeil, não há mais jobs - logo, ele deve MORRER :D
-          MPI_Send(buffer, job_size, MPI_INT, status.MPI_SOURCE, TAG_SUICIDE, MPI_COMM_WORLD);
-          dead_slaves++;
-        }
-      } break;
+      getResultsFromSlave(status.MPI_SOURCE, buffer);
 
-      case TAG_JOB_DONE: // um escravo terminou de processar um job e enviou o resultado
-      {
-        // atualiza o job original com os dados do resultado e contabiliza a conclusão
-        memcpy(this->jobs[slaves[status.MPI_SOURCE]], buffer, sizeof(int) * this->job_size);
-        jobs_done++;
-      } break;
+      if (hasWaitingJobs())
+        sendJobToSlave(status.MPI_SOURCE);
+      else
+        killSlave(status.MPI_SOURCE);
     }
+    else
+      killSlave(status.MPI_SOURCE); // Isto não deve ocorrer. Mas SE ocorrer, deve mandar o escravo se matar.
   }
 
   // libera a memória alocada para o buffer
   delete[] buffer;
+}
+
+void Master::receive(int* buffer, MPI_Status* status)
+{
+  // Recebe uma mensagem e salva no buffer
+  MPI_Recv(buffer, job_size, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, status);
+}
+
+void Master::sendJobToSlave(int slave_pid)
+{
+  // envia um novo job para este escravo e associa o escravo ao job enviado
+  MPI_Send(this->jobs[this->next_job], this->job_size, MPI_INT, slave_pid, TAG_NEW_JOB, MPI_COMM_WORLD);
+  this->slaves[slave_pid] = this->next_job++;
+}
+
+void Master::getResultsFromSlave(int slave_pid, int* buffer)
+{
+  // atualiza o job original com os dados do resultado e contabiliza a conclusão
+  memcpy(this->jobs[this->slaves[slave_pid]], buffer, sizeof(int) * this->job_size);
+  this->jobs_done++;
+}
+
+void Master::killSlave(int slave_pid)
+{
+  // cria um buffer dummy para enviar com a mensagem de suicídio
+  int* dummy = new int[this->job_size]();
+  // embora o escravo esteja disponível, não há mais jobs - logo, ele deve MORRER :D
+  MPI_Send(dummy, this->job_size, MPI_INT, slave_pid, TAG_SUICIDE, MPI_COMM_WORLD);
+  this->dead_slaves++;
 }

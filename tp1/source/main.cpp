@@ -18,18 +18,18 @@ main(int argc, char** argv)
   if (my_rank == 0)
   {
     t1 = MPI_Wtime();
-    Master master(proc_n - 1, proc_n * 2, job_size);
+    Master master(my_rank, proc_n - 1, proc_n * 2, job_size);
     // printf("Before:\n");
     // master.printJobs();
     master.mainLoop();
     // printf("After:\n");
-    // master.printJobs();
+    //master.printJobs();
     t2 = MPI_Wtime();
     printf("time elapsed: %f\n", t2 - t1);
   }
   else
   {
-    Slave slave(job_size);
+    Slave slave(my_rank, job_size);
     slave.mainLoop();
   }
 
