@@ -16,4 +16,4 @@ clean:
 	rm -rf $(SOURCES:.cpp=.o) $(TARGET)
 
 run: all
-	mpiexec -np $(np) ./$(TARGET) $(size)
+	mpiexec -np $(np) ./$(TARGET) $(jobs) $(size)

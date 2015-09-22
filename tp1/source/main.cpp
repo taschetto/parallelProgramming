@@ -6,19 +6,20 @@
 
 main(int argc, char** argv)
 {
-  int my_rank, proc_n, job_size;
+  int my_rank, proc_n, job_count, job_size;
   double t1, t2;
 
   MPI_Init(&argc , &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &proc_n);
 
-  job_size = atoi(argv[1]);
+  job_count = atoi(argv[1]);
+  job_size = atoi(argv[2]);
 
   if (my_rank == 0)
   {
     t1 = MPI_Wtime();
-    Master master(my_rank, proc_n - 1, proc_n * 2, job_size);
+    Master master(my_rank, proc_n - 1, job_count, job_size);
     // printf("Before:\n");
     // master.printJobs();
     master.mainLoop();

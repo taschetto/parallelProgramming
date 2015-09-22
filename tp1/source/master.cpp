@@ -105,6 +105,6 @@ void Master::getResultsFromSlave(int slave_pid, int* buffer)
 void Master::killSlave(int slave_pid)
 {
   // embora o escravo esteja disponível, não há mais jobs - logo, ele deve MORRER :D
-  MPI_Send(buffer, 0, MPI_INT, slave_pid, TAG_SUICIDE, MPI_COMM_WORLD);
+  MPI_Send(0, 0, MPI_INT, slave_pid, TAG_SUICIDE, MPI_COMM_WORLD);
   this->dead_slaves++;
 }
