@@ -1,0 +1,17 @@
+TARGET       = bin/tp1
+SOURCE       = $(wildcard source/*.cpp)
+CXX          = mpiCC 
+CXX_FLAGS    = 
+HOST         = $(shell hostname)
+
+SOURCES = $(wildcard source/*.cpp)
+OBJECTS = $(SOURCES:.cpp=.o)
+
+all: $(OBJECTS) 
+	$(CXX) $(OBJECTS) -o $(TARGET)
+
+%.o: %.cpp
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(SOURCES:.cpp=.o) $(TARGET)
