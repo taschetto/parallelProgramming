@@ -104,9 +104,7 @@ void Master::getResultsFromSlave(int slave_pid, int* buffer)
 
 void Master::killSlave(int slave_pid)
 {
-  // cria um buffer dummy para enviar com a mensagem de suicídio
-  int* dummy = new int[this->job_size]();
   // embora o escravo esteja disponível, não há mais jobs - logo, ele deve MORRER :D
-  MPI_Send(0, 0, MPI_INT, slave_pid, TAG_SUICIDE, MPI_COMM_WORLD);
+  MPI_Send(buffer, 0, MPI_INT, slave_pid, TAG_SUICIDE, MPI_COMM_WORLD);
   this->dead_slaves++;
 }
