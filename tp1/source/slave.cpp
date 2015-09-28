@@ -8,7 +8,7 @@ int cmpfunc (const void * a, const void * b)
 }
 
 Slave::Slave(int rank, int job_size)
-  : _rank(rank), _job_size(job_size) {}
+  : rank(rank), job_size(job_size) {}
 
 Slave::~Slave() {}
 
@@ -17,7 +17,7 @@ void Slave::mainLoop()
   MPI_Status status;
 
   // aloca memória para um buffer do tamanho de um job
-  int* buffer = new int[_job_size]();
+  int* buffer = new int[this->job_size]();
 
   while (true) // repete até que o mestre mande se suicidar
   {
@@ -34,17 +34,17 @@ void Slave::mainLoop()
 void Slave::receiveJob(int* buffer, MPI_Status* status)
 {
   // Recebe uma mensagem qualquer
-  MPI_Recv(buffer, _job_size, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, status);
+  MPI_Recv(buffer, this->job_size, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, status);
 }
 
 void Slave::doJob(int* buffer)
 {
   // realiza o quicksort no conteúdo do buffer
-  qsort(buffer, _job_size, sizeof(int), cmpfunc);
+  qsort(buffer, this->job_size, sizeof(int), cmpfunc);
 }
 
 void Slave::sendResultsToMaster(int* buffer)
 {
     // E envia o resultado de volta pro master
-    MPI_Send(buffer, _job_size, MPI_INT, 0, TAG_JOB_DONE, MPI_COMM_WORLD);
+    MPI_Send(buffer, this->job_size, MPI_INT, 0, TAG_JOB_DONE, MPI_COMM_WORLD);
 }
