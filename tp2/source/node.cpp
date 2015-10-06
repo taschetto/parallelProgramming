@@ -33,23 +33,43 @@ void Node::divide(vector<int>& numbers)
   const int left_rank  = rank * 2 + 1;
   // calcula o rank do filho à direita
   const int right_rank = rank * 2 + 2;
+
+  vector<int> meu(numbers.begin(), numbers.begin() + conquer_at);
+  vector<int> resto(numbers.begin() + conquer_at, numbers.end());
+
+  printf("processo %d pegou um vetor de tamanho %lu\n", rank, meu.size());
+
   // calcula a posição da metade do vetor
-  const size_t half_size = numbers.size() / 2;
+  const size_t half_size = resto.size() / 2;
 
   // cria dois vetores com cada metade do vetor original
-  vector<int> left(numbers.begin(), numbers.begin() + half_size);
-  vector<int> right(numbers.begin() + half_size, numbers.end());
+  vector<int> left(resto.begin(), resto.begin() + half_size);
+  vector<int> right(resto.begin() + half_size, resto.end());
+
+  printf("processo %d vai enviar um vetor de %lu para %d e %lu para %d\n", rank, left.size(), left_rank, right.size(), right_rank);
 
   // envia os vetores para os nodos filhos
   sendToNode(left_rank, left);
   sendToNode(right_rank, right);
 
+  printf("processo %d enviou trabalhos pros filhos\n", rank);
+
+  conquer(meu);
+
+  printf("processo %d ordenou seu proprio trabalho\n", rank);
+
   // espera um retorno dos nodos filhos
   receiveFromNode(left_rank, left);
   receiveFromNode(right_rank, right);
 
+
+  printf("processo %d recebeu trabalhos dos filhos\n", rank);
+
   // mescla os retornos dos nodos filhos no vetor original
-  mergeVectors(left, right, numbers);
+  mergeVectors(left, right, resto);
+
+  // mescla o meu com o novo resto
+  mergeVectors(meu, resto, numbers);
 }
 
 void Node::conquer(vector<int>& numbers)

@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 
   const float factor   = 2.0 / (proc_n + 1);
   const int size       = atoi(argv[1]);
-  const int conquer_at = ceil(size * factor);
+  const int conquer_at = ceil(size / proc_n);
 
   if (my_rank == 0)
   {
