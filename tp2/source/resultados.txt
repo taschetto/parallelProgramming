@@ -1,0 +1,30 @@
+Vetor de 100.000
+
+ 1 - 150.238151
+ 3 - 37.495147
+ 7 - 9.438238
+15 - 2.562478
+31 - 1.155349
+
+Vetor de 1.000.000
+
+ 1 - mais que 1800
+ 3 - mais que 1800
+ 7 - mais que 1800
+15 - 248.935261 
+31 - 107.655154 
+
+
+3 processos, 10 numeros
+
+1 2 3 4 5 6 7 8 9 10              1/2 (cada folha pega 5)
+
+AAAAAAA BBBBB CCCCCC              1/3 (cada processo pega 1/3)
+
+7 processos
+
+1 2 3 4 5 6 7 8 9 10              1/4 (cada folha pega 3)
+AAAAA BBBBB CCCCC DD
+
+                                  1/7
+

@@ -27,6 +27,7 @@
 *.out
 *.app
 
+ladhome/*
 ladhome/.bash_history
 ladhome/.bash_logout
 ladhome/.bashrc
@@ -35,3 +36,5 @@ ladhome/.profile
 ladhome/.ssh
 ladhome/.viminfo
 tp1/bin/tp1
+tp2/bin/tp2
+

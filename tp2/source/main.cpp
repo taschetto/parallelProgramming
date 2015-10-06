@@ -1,3 +1,4 @@
+#include <cmath>
 #include <stdio.h>
 #include <algorithm>
 #include <vector>
@@ -38,7 +39,7 @@ int main(int argc, char** argv)
     t2 = MPI_Wtime();
 
     printf("time elapsed: %f\n", t2 - t1);
-    printf(" correctness: %s\n", is_sorted(numbers.begin(), numbers.end()) ? "true" : "false");
+    //printf(" correctness: %s\n", is_sorted(numbers.begin(), numbers.end()) ? "true" : "false");
   }
   else
   {
