@@ -5,7 +5,7 @@ using namespace std;
 class Node
 {
 public:
-  Node(int, int);
+  Node(int, int, int);
   ~Node();
 
   void sort(vector<int>&); // ordena um vetor
@@ -19,8 +19,10 @@ private:
   void receiveFromNode(int, vector<int>&); // recebe um vetor da fonte especificada
   void mergeVectors(vector<int>, vector<int>, vector<int>&); // mescla dois vetores
 
-  int parentRank(); // função auxiliar para calcular o rank do nodo pai
+  bool canConquer(vector<int>); // auxiliar para definir se divide ou conquista
+  int parentRank(); // auxiliar para calcular o rank do nodo pai
 
+  int proc_n;       // número de processos
   int rank;         // rank do nodo
   int conquer_at;   // ponto de corte (critério para divisão e conquista)
 };

@@ -3,14 +3,15 @@
 #include "node.h"
 #include "mpi.h"
 
-Node::Node(int rank, int conquer_at) : conquer_at(conquer_at), rank(rank) {}
+Node::Node(int proc_n, int rank, int conquer_at) : proc_n(proc_n), rank(rank), conquer_at(conquer_at) {}
 
 Node::~Node() {}
 
 void Node::sort(vector<int>& numbers)
 {
+  //printf("%d recebeu %lu números\n", rank, numbers.size());
   // se o tamanho do vetor atende ao critério de conquista...
-  if (numbers.size() <= conquer_at)
+  if (canConquer(numbers))
     conquer(numbers);
   else
     divide(numbers);
@@ -29,15 +30,16 @@ void Node::sort()
 
 void Node::divide(vector<int>& numbers)
 {
+  //printf("%d vai dividir %lu números\n", rank, numbers.size());
   // calcula o rank do filho à esquerda
   const int left_rank  = rank * 2 + 1;
   // calcula o rank do filho à direita
   const int right_rank = rank * 2 + 2;
 
-  vector<int> meu(numbers.begin(), numbers.begin() + conquer_at);
-  vector<int> resto(numbers.begin() + conquer_at, numbers.end());
+  vector<int> meu(numbers.begin(), numbers.begin() + conquer_at + 1);
+  vector<int> resto(numbers.begin() + conquer_at + 1, numbers.end());
 
-  printf("processo %d pegou um vetor de tamanho %lu\n", rank, meu.size());
+  // printf("%d pegou %lu números para si e sobraram %lu\n", rank, meu.size(), resto.size());
 
   // calcula a posição da metade do vetor
   const size_t half_size = resto.size() / 2;
@@ -46,24 +48,17 @@ void Node::divide(vector<int>& numbers)
   vector<int> left(resto.begin(), resto.begin() + half_size);
   vector<int> right(resto.begin() + half_size, resto.end());
 
-  printf("processo %d vai enviar um vetor de %lu para %d e %lu para %d\n", rank, left.size(), left_rank, right.size(), right_rank);
+  // printf("%d vai enviar %lu números para %d e %lu para %d\n", rank, left.size(), left_rank, right.size(), right_rank);
 
   // envia os vetores para os nodos filhos
   sendToNode(left_rank, left);
   sendToNode(right_rank, right);
 
-  printf("processo %d enviou trabalhos pros filhos\n", rank);
-
   conquer(meu);
-
-  printf("processo %d ordenou seu proprio trabalho\n", rank);
 
   // espera um retorno dos nodos filhos
   receiveFromNode(left_rank, left);
   receiveFromNode(right_rank, right);
-
-
-  printf("processo %d recebeu trabalhos dos filhos\n", rank);
 
   // mescla os retornos dos nodos filhos no vetor original
   mergeVectors(left, right, resto);
@@ -74,6 +69,7 @@ void Node::divide(vector<int>& numbers)
 
 void Node::conquer(vector<int>& numbers)
 {
+  //printf("%d vai conquistar %lu números\n", rank, numbers.size());
   // método fornecido pelo professor para o bubblesort
   int c = 0, troca, trocou = 1;
   while (c < (numbers.size() - 1) & trocou)
@@ -118,6 +114,12 @@ void Node::mergeVectors(vector<int> a, vector<int> b, vector<int>& c)
 {
   // faz o merge de dois vetores resultando em um terceiro
   merge(a.begin(), a.end(), b.begin(), b.end(), c.begin());
+}
+
+bool Node::canConquer(vector<int> numbers)
+{
+  if (rank >= proc_n / 2) return true; // se é folha SEMPRE conquista
+  return numbers.size() <= conquer_at;
 }
 
 int Node::parentRank()

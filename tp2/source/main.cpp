@@ -22,7 +22,6 @@ int main(int argc, char** argv)
     return -1;
   }
 
-  const float factor   = 2.0 / (proc_n + 1);
   const int size       = atoi(argv[1]);
   const int conquer_at = ceil(size / proc_n);
 
@@ -33,7 +32,7 @@ int main(int argc, char** argv)
     for (int i = 0 ; i < size; i++) numbers[i] = size - i;
 
     t1 = MPI_Wtime();
-    Node node(my_rank, conquer_at);
+    Node node(proc_n, my_rank, conquer_at);
     // nodo inicial recebe como entrada o vetor de inteiros para ordenar
     node.sort(numbers);
     t2 = MPI_Wtime();
@@ -43,7 +42,7 @@ int main(int argc, char** argv)
   }
   else
   {
-    Node node(my_rank, conquer_at);
+    Node node(proc_n, my_rank, conquer_at);
     // os demais nodos recebem os vetores para ordenação através do MPI
     node.sort();
   }
