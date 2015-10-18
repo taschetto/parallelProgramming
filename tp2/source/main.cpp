@@ -23,8 +23,13 @@ int main(int argc, char** argv)
   }
 
   const int size       = atoi(argv[1]);
+  const int percentage = atoi(argv[2]); 
+  const int conquer_local_size = (size * percentage)/100;
   const int conquer_at = ceil(size / proc_n);
-
+/*
+   1000 - 100
+   x    - 10
+*/
   if (my_rank == 0)
   {
     // inicializa o vetor a ser ordenado
@@ -32,7 +37,7 @@ int main(int argc, char** argv)
     for (int i = 0 ; i < size; i++) numbers[i] = size - i;
 
     t1 = MPI_Wtime();
-    Node node(proc_n, my_rank, conquer_at);
+    Node node(proc_n, my_rank, conquer_at, conquer_local_size);
     // nodo inicial recebe como entrada o vetor de inteiros para ordenar
     node.sort(numbers);
     t2 = MPI_Wtime();
@@ -42,7 +47,7 @@ int main(int argc, char** argv)
   }
   else
   {
-    Node node(proc_n, my_rank, conquer_at);
+    Node node(proc_n, my_rank, conquer_at, conquer_local_size);
     // os demais nodos recebem os vetores para ordenação através do MPI
     node.sort();
   }

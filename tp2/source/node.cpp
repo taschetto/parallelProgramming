@@ -3,7 +3,8 @@
 #include "node.h"
 #include "mpi.h"
 
-Node::Node(int proc_n, int rank, int conquer_at) : proc_n(proc_n), rank(rank), conquer_at(conquer_at) {}
+Node::Node(int proc_n, int rank, int conquer_at, int conquer_local_size) 
+          : proc_n(proc_n), rank(rank), conquer_at(conquer_at), conquer_local_size(conquer_local_size) {}
 
 Node::~Node() {}
 
@@ -13,8 +14,10 @@ void Node::sort(vector<int>& numbers)
   // se o tamanho do vetor atende ao critério de conquista...
   if (canConquer(numbers))
     conquer(numbers);
+  else if(conquer_local_size == 0)
+    divide_v1(numbers);
   else
-    divide(numbers);
+    divide_v2(numbers);
 }
 
 void Node::sort()
@@ -28,7 +31,8 @@ void Node::sort()
   sendToNode(parentRank(), numbers);
 }
 
-void Node::divide(vector<int>& numbers)
+// divide o vetor entre os dois filhos
+void Node::divide_v1(vector<int>& numbers)
 {
   //printf("%d vai dividir %lu números\n", rank, numbers.size());
   // calcula o rank do filho à esquerda
@@ -36,8 +40,8 @@ void Node::divide(vector<int>& numbers)
   // calcula o rank do filho à direita
   const int right_rank = rank * 2 + 2;
 
-  vector<int> meu(numbers.begin(), numbers.begin() + conquer_at + 1);
   vector<int> resto(numbers.begin() + conquer_at + 1, numbers.end());
+  
 
   // printf("%d pegou %lu números para si e sobraram %lu\n", rank, meu.size(), resto.size());
 
@@ -54,7 +58,45 @@ void Node::divide(vector<int>& numbers)
   sendToNode(left_rank, left);
   sendToNode(right_rank, right);
 
+  // espera um retorno dos nodos filhos
+  receiveFromNode(left_rank, left);
+  receiveFromNode(right_rank, right);
+
+  // mescla os retornos dos nodos filhos no vetor original
+  mergeVectors(left, right, resto);
+}
+
+// pega um percentual do vetor para si e o restante distribui entre os filhos
+void Node::divide_v2(vector<int>& numbers)
+{
+  //printf("%d vai dividir %lu números\n", rank, numbers.size());
+  // calcula o rank do filho à esquerda
+  const int left_rank  = rank * 2 + 1;
+  // calcula o rank do filho à direita
+  const int right_rank = rank * 2 + 2;
+
+  vector<int> meu(numbers.begin(), numbers.begin() + conquer_local_size + 1);
+  vector<int> resto(numbers.begin() + conquer_local_size + 1, numbers.end());
+  
+
+  // printf("%d pegou %lu números para si e sobraram %lu\n", rank, meu.size(), resto.size());
+
+  // calcula a posição da metade do vetor
+  const size_t half_size = resto.size() / 2;
+
+  // cria dois vetores com cada metade do vetor original
+  vector<int> left(resto.begin(), resto.begin() + half_size);
+  vector<int> right(resto.begin() + half_size, resto.end());
+
+  // printf("%d vai enviar %lu números para %d e %lu para %d\n", rank, left.size(), left_rank, right.size(), right_rank);
+
+  // envia os vetores para os nodos filhos
+  sendToNode(left_rank, left);
+  sendToNode(right_rank, right);
+
+  
   conquer(meu);
+  
 
   // espera um retorno dos nodos filhos
   receiveFromNode(left_rank, left);
@@ -64,7 +106,9 @@ void Node::divide(vector<int>& numbers)
   mergeVectors(left, right, resto);
 
   // mescla o meu com o novo resto
+ 
   mergeVectors(meu, resto, numbers);
+  
 }
 
 void Node::conquer(vector<int>& numbers)

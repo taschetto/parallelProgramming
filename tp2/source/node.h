@@ -5,14 +5,15 @@ using namespace std;
 class Node
 {
 public:
-  Node(int, int, int);
+  Node(int, int, int, const int);
   ~Node();
 
   void sort(vector<int>&); // ordena um vetor
   void sort();             // espera receber um vetor e o ordena
 
 private:
-  void divide(vector<int>&);  // divide um vetor :P
+  void divide_v1(vector<int>&);  // divide um vetor :P
+  void divide_v2(vector<int>&);  // divide um vetor :P
   void conquer(vector<int>&); // conquista um vetor :P
 
   void sendToNode(int, vector<int>);  // envia um vetor para o destino especificado
@@ -25,4 +26,5 @@ private:
   int proc_n;       // número de processos
   int rank;         // rank do nodo
   int conquer_at;   // ponto de corte (critério para divisão e conquista)
+  int conquer_local_size;
 };
