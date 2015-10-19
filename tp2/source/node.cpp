@@ -3,13 +3,16 @@
 #include "node.h"
 #include "mpi.h"
 
-Node::Node(int proc_n, int rank, int conquer_at) : proc_n(proc_n), rank(rank), conquer_at(conquer_at) {}
+Node::Node(int proc_n, int rank, int conquer_at, bool local_sort)
+ : proc_n(proc_n)
+ , rank(rank)
+ , conquer_at(conquer_at)
+ , local_sort(local_sort) {}
 
 Node::~Node() {}
 
 void Node::sort(vector<int>& numbers)
 {
-  //printf("%d recebeu %lu números\n", rank, numbers.size());
   // se o tamanho do vetor atende ao critério de conquista...
   if (canConquer(numbers))
     conquer(numbers);
@@ -30,46 +33,62 @@ void Node::sort()
 
 void Node::divide(vector<int>& numbers)
 {
-  //printf("%d vai dividir %lu números\n", rank, numbers.size());
-  // calcula o rank do filho à esquerda
+  // calcula o rank do filho à esquerda e à direita
   const int left_rank  = rank * 2 + 1;
-  // calcula o rank do filho à direita
   const int right_rank = rank * 2 + 2;
 
-  vector<int> meu(numbers.begin(), numbers.begin() + conquer_at + 1);
-  vector<int> resto(numbers.begin() + conquer_at + 1, numbers.end());
+  vector<int>::iterator localBegin;
+  vector<int>::iterator localEnd;
+  vector<int>::iterator leftoverBegin;
+  vector<int>::iterator leftoverEnd;
 
-  // printf("%d pegou %lu números para si e sobraram %lu\n", rank, meu.size(), resto.size());
+  if (hasLocalSort())
+  {
+    localBegin    = numbers.begin();
+    localEnd      = numbers.begin() + conquer_at + 1;
+    leftoverBegin = localEnd;
+    leftoverEnd   = numbers.end();
+  }
+  else
+  {
+    localBegin    = numbers.end();
+    localEnd      = numbers.end();
+    leftoverBegin = numbers.begin();
+    leftoverEnd   = numbers.end();
+  }
 
-  // calcula a posição da metade do vetor
-  const size_t half_size = resto.size() / 2;
+  vector<int> local(localBegin, localEnd);
+  vector<int> leftover(leftoverBegin, leftoverEnd);
 
-  // cria dois vetores com cada metade do vetor original
-  vector<int> left(resto.begin(), resto.begin() + half_size);
-  vector<int> right(resto.begin() + half_size, resto.end());
+  // calcula a posição da metade do leftover para distribuir entre os filhos
+  const size_t half_size = leftover.size() / 2;
 
-  // printf("%d vai enviar %lu números para %d e %lu para %d\n", rank, left.size(), left_rank, right.size(), right_rank);
+  // cria dois vetores com cada metade do vetor leftover
+  vector<int> left(leftover.begin(), leftover.begin() + half_size);
+  vector<int> right(leftover.begin() + half_size, leftover.end());
 
-  // envia os vetores para os nodos filhos
+  // envia cada metade do leftover para os nodos filhos
   sendToNode(left_rank, left);
   sendToNode(right_rank, right);
 
-  conquer(meu);
+  // conquista o vetor local
+  if (hasLocalSort())
+    conquer(local);
 
-  // espera um retorno dos nodos filhos
+  // espera pelo retorno dos nodos filhos
   receiveFromNode(left_rank, left);
   receiveFromNode(right_rank, right);
 
-  // mescla os retornos dos nodos filhos no vetor original
-  mergeVectors(left, right, resto);
+  // mescla os retornos dos nodos filhos no leftover original
+  mergeVectors(left, right, leftover);
 
-  // mescla o meu com o novo resto
-  mergeVectors(meu, resto, numbers);
+  // mescla o local com o novo leftover no vetor original
+  mergeVectors(local, leftover, numbers);
 }
 
 void Node::conquer(vector<int>& numbers)
 {
-  //printf("%d vai conquistar %lu números\n", rank, numbers.size());
+  printf("Rank %d conquering %lu numbers.\n", this->rank, numbers.size());
   // método fornecido pelo professor para o bubblesort
   int c = 0, troca, trocou = 1;
   while (c < (numbers.size() - 1) & trocou)
@@ -120,6 +139,11 @@ bool Node::canConquer(vector<int> numbers)
 {
   if (rank >= proc_n / 2) return true; // se é folha SEMPRE conquista
   return numbers.size() <= conquer_at;
+}
+
+bool Node::hasLocalSort()
+{
+  return this->local_sort;
 }
 
 int Node::parentRank()

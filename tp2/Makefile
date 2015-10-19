@@ -16,4 +16,4 @@ clean:
 	rm -rf $(SOURCES:.cpp=.o) $(TARGET)
 
 run: all
-	mpiexec -prepend-rank -np $(np) ./$(TARGET) $(size)
+	mpiexec -prepend-rank -np $(np) ./$(TARGET) $(size) $(local)

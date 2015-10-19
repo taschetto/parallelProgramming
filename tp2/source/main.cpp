@@ -1,6 +1,8 @@
-#include <cmath>
-#include <stdio.h>
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
+#include <stdio.h>
 #include <vector>
 #include "node.h"
 #include "mpi.h"
@@ -22,8 +24,9 @@ int main(int argc, char** argv)
     return -1;
   }
 
-  const int size       = atoi(argv[1]);
-  const int conquer_at = ceil(size / proc_n);
+  const int size        = atoi(argv[1]);
+  const bool local_sort = atoi(argv[2]);
+  const int conquer_at  = local_sort ? ceil(size / proc_n) : ceil(size / proc_n);
 
   if (my_rank == 0)
   {
@@ -32,17 +35,17 @@ int main(int argc, char** argv)
     for (int i = 0 ; i < size; i++) numbers[i] = size - i;
 
     t1 = MPI_Wtime();
-    Node node(proc_n, my_rank, conquer_at);
+    Node node(proc_n, my_rank, conquer_at, local_sort);
     // nodo inicial recebe como entrada o vetor de inteiros para ordenar
     node.sort(numbers);
     t2 = MPI_Wtime();
 
     printf("time elapsed: %f\n", t2 - t1);
-    //printf(" correctness: %s\n", is_sorted(numbers.begin(), numbers.end()) ? "true" : "false");
+    printf(" correctness: %s\n", (is_sorted(numbers.begin(), numbers.end()) && numbers.size() == size) ? "true" : "false");
   }
   else
   {
-    Node node(proc_n, my_rank, conquer_at);
+    Node node(proc_n, my_rank, conquer_at, local_sort);
     // os demais nodos recebem os vetores para ordenação através do MPI
     node.sort();
   }
