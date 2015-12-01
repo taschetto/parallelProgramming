@@ -31,7 +31,7 @@ main(int argc, char** argv)
   }
   else
   {
-    Slave slave(my_rank, thread_count, job_size);
+    Slave slave(my_rank, job_size);
     slave.mainLoop();
   }
 

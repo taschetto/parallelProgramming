@@ -22,9 +22,6 @@ Master::Master(int rank, int num_slaves, int num_jobs, int job_size)
       this->jobs[i][j] = (i + 1) * (this->job_size - j);
     }
   }
-
-  // alocação dinâmica da estrutura auxiliar
-  this->slaves = new int[num_slaves];
 }
 
 Master::~Master()
@@ -33,7 +30,6 @@ Master::~Master()
   for (int i = 0; i < this->num_jobs; i++)
     delete[] this->jobs[i];
   delete[] this->jobs;
-  delete[] this->slaves;
 }
 
 void Master::printJobs()
@@ -51,31 +47,21 @@ void Master::printJobs()
 void Master::mainLoop()
 {
   MPI_Status status;
-
-  // aloca memória para um buffer do tamanho de um job
   int* buffer = new int[job_size]();
 
-  for (int i = 1; i <= this->num_slaves; i++) // inicia enviando uma rajada de jobs
-  {
-    if (hasWaitingJobs())
-      sendJobToSlave(i);
-  }
-
-  while(hasWaitingJobs() or hasWorkingJobs() or hasSlavesAlive())
+  while (hasWaitingJobs() or hasWorkingJobs() or hasSlavesAlive())
   {
     receive(buffer, &status);
 
-    if (status.MPI_TAG == TAG_JOB_DONE) // um escravo terminou de processar um job e enviou o resultado
+    if (status.MPI_TAG == TAG_JOB_NEEDED)
     {
-      getResultsFromSlave(status.MPI_SOURCE, buffer);
-
       if (hasWaitingJobs())
         sendJobToSlave(status.MPI_SOURCE);
       else
         killSlave(status.MPI_SOURCE);
     }
     else
-      killSlave(status.MPI_SOURCE); // Isto não deve ocorrer. Mas SE ocorrer, deve mandar o escravo se matar.
+      getResultsFromSlave(status.MPI_TAG, buffer);
   }
 
   // libera a memória alocada para o buffer
@@ -91,14 +77,15 @@ void Master::receive(int* buffer, MPI_Status* status)
 void Master::sendJobToSlave(int slave_pid)
 {
   // envia um novo job para este escravo e associa o escravo ao job enviado
-  MPI_Send(this->jobs[this->next_job], this->job_size, MPI_INT, slave_pid, TAG_NEW_JOB, MPI_COMM_WORLD);
-  this->slaves[slave_pid] = this->next_job++;
+  MPI_Send(this->jobs[this->next_job], this->job_size, MPI_INT, slave_pid, this->next_job, MPI_COMM_WORLD);
+  this->next_job++;
+// printf("Master (%d) sent job %/%d to %d.\n", this->rank, this->next_job, this->num_jobs, slave_pid);
 }
 
-void Master::getResultsFromSlave(int slave_pid, int* buffer)
+void Master::getResultsFromSlave(int tag, int* buffer)
 {
   // atualiza o job original com os dados do resultado e contabiliza a conclusão
-  memcpy(this->jobs[this->slaves[slave_pid]], buffer, sizeof(int) * this->job_size);
+  memcpy(this->jobs[tag], buffer, sizeof(int) * this->job_size);
   this->jobs_done++;
 }
 

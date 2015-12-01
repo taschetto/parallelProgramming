@@ -15,7 +15,6 @@ public:
 private:
   int rank;          // rank do processo
   int** jobs;        // estrutura para armazenar jobs
-  int* slaves;       // estrutura para associar jobs a slaves
   int num_jobs;      // número total de jobs
   int job_size;      // tamanho de cada job
   int next_job;      // índice do próximo job
