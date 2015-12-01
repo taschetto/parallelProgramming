@@ -6,13 +6,14 @@
 class Slave
 {
 public:
-  Slave(int, int);
+  Slave(int, int, int);
   ~Slave();
   void mainLoop();
 
 private:
   int rank;     // rank do processo
   int job_size; // tamanho de cada job
+  int thread_count; // número de worker threads no slave
   void askForJob(void); // pede um job pro master
   int receiveJob(int*, MPI_Status*); // recebe um job do master
   void doJob(int*); // executa o job

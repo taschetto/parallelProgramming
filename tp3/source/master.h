@@ -6,7 +6,7 @@
 class Master
 {
 public:
-  Master(int, int, int, int);
+  Master(int, int, int, int, int);
   ~Master();
 
   void printJobs();
@@ -17,6 +17,7 @@ private:
   int** jobs;        // estrutura para armazenar jobs
   int num_jobs;      // número total de jobs
   int job_size;      // tamanho de cada job
+  int thread_count;  // total de threads por slave
   int next_job;      // índice do próximo job
   int jobs_done;     // contador de jobs concluídos
   int num_slaves;    // total de processos slaves criados
@@ -29,5 +30,5 @@ private:
 
   bool hasWaitingJobs() { return next_job < num_jobs; }
   bool hasWorkingJobs() { return jobs_done < num_jobs; }
-  bool hasSlavesAlive() { return dead_slaves < num_slaves; }
+  bool hasSlavesAlive() { return dead_slaves < (num_slaves * thread_count); }
 };
