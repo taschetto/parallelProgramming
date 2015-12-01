@@ -8,8 +8,8 @@ int cmpfunc (const void * a, const void * b)
    return ( *(int*)a - *(int*)b );
 }
 
-Slave::Slave(int rank, int job_size, int thread_count)
-  : rank(rank), job_size(job_size), thread_count(thread_count) {}
+Slave::Slave(int rank, int job_size, int thread_count, int sort_method)
+  : rank(rank), job_size(job_size), thread_count(thread_count), sort_method(sort_method) {}
 
 Slave::~Slave() {}
 
@@ -60,10 +60,39 @@ int Slave::receiveJob(int* buffer, MPI_Status* status)
   return status->MPI_TAG;
 }
 
+void Slave::bubblesort(int* buffer)
+{
+  //printf("%d vai conquistar %lu números\n", rank, numbers.size());
+  // método fornecido pelo professor para o bubblesort
+  int c = 0, troca, trocou = 1;
+  while (c < (this->job_size-1) & trocou)
+  {
+    trocou = 0;
+    for (int d = 0 ; d < this->job_size - c - 1; d++)
+    {
+      if (buffer[d] > buffer[d + 1])
+      {
+        troca        = buffer[d];
+        buffer[d]   = buffer[d+1];
+        buffer[d + 1] = troca;
+        trocou = 1;
+      }
+    }
+    c++;
+  }
+}
+
 void Slave::doJob(int* buffer)
 {
-  // realiza o quicksort no conteúdo do buffer
-  qsort(buffer, this->job_size, sizeof(int), cmpfunc);
+  if(sort_method == 1) 
+  {
+    // realiza o quicksort no conteúdo do buffer
+    qsort(buffer, this->job_size, sizeof(int), cmpfunc);
+  }
+  else 
+  {
+    bubblesort(buffer);
+  }
 }
 
 void Slave::sendResultsToMaster(int* buffer, int job_num)

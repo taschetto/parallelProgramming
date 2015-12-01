@@ -6,7 +6,7 @@
 
 main(int argc, char** argv)
 {
-  int my_rank, proc_n, thread_count, job_count, job_size;
+  int my_rank, proc_n, thread_count, job_count, job_size, sort_method;
   double t1, t2;
 
   MPI_Init(&argc , &argv);
@@ -16,6 +16,7 @@ main(int argc, char** argv)
   thread_count = atoi(argv[1]);
   job_count = atoi(argv[2]);
   job_size = atoi(argv[3]);
+  sort_method = atoi(argv[4]);
 
   if (my_rank == 0)
   {
@@ -25,13 +26,13 @@ main(int argc, char** argv)
     // master.printJobs();
     master.mainLoop();
     // printf("After:\n");
-    // master.printJobs();
+    //master.printJobs();
     t2 = MPI_Wtime();
     printf("time elapsed: %f\n", t2 - t1);
   }
   else
   {
-    Slave slave(my_rank, job_size, thread_count);
+    Slave slave(my_rank, job_size, thread_count, sort_method);
     slave.mainLoop();
   }
 
