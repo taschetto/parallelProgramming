@@ -18,15 +18,16 @@ void Slave::mainLoop()
 
   // aloca memória para um buffer do tamanho de um job
   int* buffer = new int[this->job_size]();
+  int job_num = -1;
 
   while (true) // repete até que o mestre mande se suicidar
   {
     askForJob();
-    receiveJob(buffer, &status);
+    job_num = receiveJob(buffer, &status);
     printf("Slave %d received tag %d.\n", this->rank, status.MPI_TAG);
     if (status.MPI_TAG == TAG_SUICIDE) break; // Se é uma ordem para suicídio, quebra o loop
     doJob(buffer);
-    sendResultsToMaster(buffer);
+    sendResultsToMaster(buffer, job_num);
   }
 
   // libera a memória alocada para o buffer
@@ -38,11 +39,11 @@ void Slave::askForJob(void)
   MPI_Send(0, 0, MPI_INT, 0, TAG_JOB_NEEDED, MPI_COMM_WORLD);
 }
 
-void Slave::receiveJob(int* buffer, MPI_Status* status)
+int Slave::receiveJob(int* buffer, MPI_Status* status)
 {
   // Recebe uma mensagem qualquer
   MPI_Recv(buffer, this->job_size, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, status);
-  this->job_num = status->MPI_TAG;
+  return status->MPI_TAG;
 }
 
 void Slave::doJob(int* buffer)
@@ -51,8 +52,8 @@ void Slave::doJob(int* buffer)
   qsort(buffer, this->job_size, sizeof(int), cmpfunc);
 }
 
-void Slave::sendResultsToMaster(int* buffer)
+void Slave::sendResultsToMaster(int* buffer, int job_num)
 {
   // E envia o resultado de volta pro master
-  MPI_Send(buffer, this->job_size, MPI_INT, 0, this->job_num, MPI_COMM_WORLD);
+  MPI_Send(buffer, this->job_size, MPI_INT, 0, job_num, MPI_COMM_WORLD);
 }
