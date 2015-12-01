@@ -32,7 +32,6 @@ void Slave::mainLoop()
       job_num = receiveJob(buffer, &status);
       if (status.MPI_TAG != TAG_SUICIDE) {
         doJob(buffer);
-        // printf("Slave %d.%d received job %d.\n", this->rank, omp_get_thread_num(), job_num);
         sendResultsToMaster(buffer, job_num);
       }
       else
@@ -49,7 +48,6 @@ void Slave::askForJob(void)
   #pragma omp critical(mpi)
   {
     MPI_Send(0, 0, MPI_INT, 0, TAG_JOB_NEEDED, MPI_COMM_WORLD);
-    // printf("Slave %d.%d asked for a job.\n", this->rank, omp_get_thread_num());
   }
 }
 
@@ -74,5 +72,4 @@ void Slave::sendResultsToMaster(int* buffer, int job_num)
   {
     MPI_Send(buffer, this->job_size, MPI_INT, 0, job_num, MPI_COMM_WORLD);
   }
-  // printf("Slave %d.%d sent job %d back to master.\n", this->rank, omp_get_thread_num(), job_num);
 }

@@ -77,11 +77,9 @@ void Master::receive(int* buffer, MPI_Status* status)
 
 void Master::sendJobToSlave(int slave_pid)
 {
-  // printf("Master --- slave %d asked for job. Sending %d. \n", slave_pid, this->next_job);
   // envia um novo job para este escravo e associa o escravo ao job enviado
   MPI_Send(this->jobs[this->next_job], this->job_size, MPI_INT, slave_pid, this->next_job, MPI_COMM_WORLD);
   this->next_job++;
-// printf("Master (%d) sent job %/%d to %d.\n", this->rank, this->next_job, this->num_jobs, slave_pid);
 }
 
 void Master::getResultsFromSlave(int tag, int* buffer)
@@ -93,7 +91,6 @@ void Master::getResultsFromSlave(int tag, int* buffer)
 
 void Master::killSlave(int slave_pid)
 {
-    // printf("Master --- slave %d asked for job but none as left. Killing it!\n", slave_pid, this->next_job);
   // embora o escravo esteja disponível, não há mais jobs - logo, ele deve MORRER :D
   MPI_Send(0, 0, MPI_INT, slave_pid, TAG_SUICIDE, MPI_COMM_WORLD);
   this->dead_slaves++;
