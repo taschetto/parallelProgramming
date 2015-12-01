@@ -16,7 +16,7 @@ Slave::Slave(int rank, int thread_count, int job_size)
 Slave::~Slave() {}
 
 bool Slave::mustRun() {
-  #pragma omp critical
+  #pragma omp critical (mustdie)
   {
     bool must_die = this->must_die;
   }
@@ -42,7 +42,7 @@ void Slave::mainLoop()
       }
       else
       {
-        #pragma omp critical
+        #pragma omp critical (mustdie)
         must_die = true;
       }
     }
